@@ -1,4 +1,5 @@
 import json
+import pdb
 
 class Watch:
     # watchtype = ""
@@ -14,9 +15,11 @@ class Config:
     watches = []
     feeds = []
     def __init__(self, configPath):
+
         # interpret the config file as json
         with open (configPath) as ff:
             cfg_json = json.load(ff)
+        
         # read in the alerts
         alerts = cfg_json["alerts"]
         for watch in alerts:
@@ -30,6 +33,7 @@ class Config:
             newwatch.trip = watch["trip"]
             newwatch.scheduled_time = watch["scheduled-time"]
             self.watches.append(newwatch)
+        
         # read in the feeds
         for f in cfg_json["feeds"]:
             feed = Feed()
