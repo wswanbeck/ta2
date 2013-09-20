@@ -1,0 +1,37 @@
+Main
+    Read in config
+    Start up feedwatcher thread for each feed url
+    Start up scheduler
+    Subscribers are created on demand later
+
+Scheduler
+    Read config
+    Preprocess config times - figure out trip number.
+    build schedule table
+        last time each complete is None or anytime before today's date
+    loop:
+        check time and schedule
+        if scheduled time to start something up AND it's not running and it's not marked complete today: 
+            subscribe to feedwatcher
+            mark it as running
+        if time to give up on a process
+            unsubscribe to feed watcher
+            mark it as not running and failed to complete
+            sleep for a minute 
+
+Feedwatcher threads
+    If no subscribers, do nothing
+    Accept subscribe and unsubscribe requests - keep list of webhooks
+        loop:
+            if at least 1 subscriber:
+                read the feed
+                post the feed to each subscriber
+            wait until 10 seconds passed since last read
+
+Subscribers
+    When post received:
+        Create subscriber from url parameters and config that it points to
+        check feed data from post and look for match
+        If match found
+            Send alert
+            Notify scheduler - task is complete
