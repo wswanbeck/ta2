@@ -9,34 +9,47 @@ import sys
 sys.path.append(os.path.abspath('..'))
 from lib.config import Config
 
-from threading import Thread
+import threading
 import time
 
-class FeedWatcher:
-
-    # when threadstop is True, thethread will stop
-    threadstop = False
+class FeedWatcher(threading.Thread):
 
     def __init__(self, feedurl):
+        # when threadstop is True, thethread will stop
+        self.threadstop = False
+
+        # subscriber Urls
+        self.subscriberUrls = {}
+
+        threading.Thread.__init__(self)
         self.feedurl = feedurl
 
-    def start(self):
-        self.thread = Thread(target = self.thethread)
-        self.thread.start()
-
-    def stop(self):
+    def signalstop(self):
         self.threadstop = True
-        self.thread.join()
-        print "Stopped watching feed: " + self.feedurl
+        print "Stop watching feed: " + self.feedurl
 
-    def thethread(self):
+    def run(self):
         while not self.threadstop:
-            print "Watching feed: " + self.feedurl
+            print "==== " + self.feedurl + " " + str(len(self.subscriberUrls))
+            if len(self.subscriberUrls) > 0:
+                print "Watching feed: " + self.feedurl
+            else:
+                print "NOT watching feed: " + self.feedurl
             time.sleep(10)
+
+    def subscribe(self, subscriberUrl, urlname):
+        self.subscriberUrls[subscriberUrl] = urlname
+        print "subscribed " + subscriberUrl + " " + urlname + " to feed " + self.feedurl
+
+    def unsubscribe(self, subscriberUrl):
+        del self.subscriberUrls[subscriberUrl]
+        print "UNsubscribed " + subscriberUrl + " to feed " + self.feedurl
+
+
 
 class TestFeedWatcher(unittest.TestCase):
 
-    def test1(self):
+    def testStartWatchers(self):
         cfg = Config("../conf/test.conf")
         feedwatchers = []
         feedwatchers.append(FeedWatcher(cfg.feeds[0].feedurl))
@@ -44,8 +57,13 @@ class TestFeedWatcher(unittest.TestCase):
         for fw in feedwatchers:
             fw.start()
         time.sleep(2)
+        feedwatchers[0].subscribe("testurl", "myname")
+        time.sleep(12)
+
+        feedwatchers[0].unsubscribe("testurl")
+        time.sleep(12)
         for fw in feedwatchers:
-            fw.stop()
+            fw.signalstop()
 
 if __name__ == '__main__':
     unittest.main()
