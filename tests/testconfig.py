@@ -15,6 +15,7 @@ class TestConfig(unittest.TestCase):
         cfg = Config("../conf/test.conf")
         # verify that config had 2 watches specified in it
         self.assertEqual(len(cfg.watches), 2)
+        self.assertEqual(len(cfg.feeds), 2)
 
 if __name__ == '__main__':
     unittest.main()
