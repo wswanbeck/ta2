@@ -10,7 +10,9 @@ class Feed:
     def a(self):
         pass
 
-
+# this class wraps the json formatted config file
+# which includes alerts (what to watch and action to take when found)
+# and background info, such as feed urls
 class Config:
     def __init__(self, configPath):
         self.watches = {}
