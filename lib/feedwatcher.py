@@ -2,6 +2,27 @@ import threading
 import time
 import urllib2
 
+class FeedWatcherManager:
+
+    def init(self, cfg):
+        self.feedwatchers = {}
+        for feed in cfg.feeds:
+            self.feedwatchers[feed.feedname] = FeedWatcher(feed.feedurl, feed.feedname)
+
+    def start(self):
+        for fw in self.feedwatchers:
+            self.feedwatchers[fw].start()
+
+    def stop(self):
+        for fw in self.feedwatchers:
+            self.feedwatchers[fw].signalstop()
+
+    def subscribe(self, feedname, suburl, alertname):
+        self.feedwatchers[feedname].subscribe(suburl, alertname)
+
+    def unsubscribe(self, feedname, suburl):
+        self.feedwatchers[feedname].unsubscribe(suburl)
+
 class FeedWatcher(threading.Thread):
 
     def __init__(self, feedurl, feedname):

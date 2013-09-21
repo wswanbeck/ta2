@@ -9,32 +9,26 @@ import time
 # pretend we're running from the directory above ./tests
 sys.path.append(os.path.abspath('..'))
 from lib.config import Config
-from lib.feedwatcher import FeedWatcher
+from lib.feedwatcher import FeedWatcher, FeedWatcherManager
 
 class TestFeedWatcher(unittest.TestCase):
 
     def testStartWatchers(self):
+        fm = FeedWatcherManager()
         cfg = Config("../conf/test.conf")
-        feedwatchers = {}
-        for feed in cfg.feeds:
-            feedwatchers[feed.feedname] = FeedWatcher(feed.feedurl, feed.feedname)
-        # feedwatchers[cfg.alerts[0].append(FeedWatcher(cfg.feeds[0].feedurl))
-        # feedwatchers.append(FeedWatcher(cfg.feeds[1].feedurl))
-        for fw in feedwatchers:
-            feedwatchers[fw].start()
-            time.sleep(1)
+        fm.init(cfg)
+        fm.start()
         time.sleep(2)
         for alertname in cfg.watches:
-            feedwatchers[cfg.watches[alertname].watch_feed_name].subscribe("http://localhost:88/alert?alertname=" + alertname, "myname")
+            fm.subscribe(cfg.watches[alertname].watch_feed_name,"http://localhost:88/alert?alertname=" + alertname, alertname)
             time.sleep(1)
         time.sleep(12)
         
         for alertname in cfg.watches:
-            feedwatchers[cfg.watches[alertname].watch_feed_name].unsubscribe("http://localhost:88/alert?alertname=" + alertname)
+            fm.unsubscribe(cfg.watches[alertname].watch_feed_name,"http://localhost:88/alert?alertname=" + alertname)
 
         time.sleep(12)
-        for fw in feedwatchers:
-            feedwatchers[fw].signalstop()
+        fm.stop()
 
 if __name__ == '__main__':
     unittest.main()
