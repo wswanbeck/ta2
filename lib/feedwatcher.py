@@ -4,7 +4,7 @@ import urllib2
 
 class FeedWatcher(threading.Thread):
 
-    def __init__(self, feedurl):
+    def __init__(self, feedurl, feedname):
         # when threadstop is True, thethread will stop
         self.threadstop = False
 
@@ -13,6 +13,7 @@ class FeedWatcher(threading.Thread):
 
         threading.Thread.__init__(self)
         self.feedurl = feedurl
+        self.feedname = feedname
 
     def signalstop(self):
         self.threadstop = True

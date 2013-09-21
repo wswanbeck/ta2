@@ -32,6 +32,7 @@ class Config:
                 newwatch.scheduledays.append(day)
             newwatch.trip = watch["trip"]
             newwatch.scheduled_time = watch["scheduled-time"]
+            newwatch.watch_feed_name = watch["watch-feed-name"]
             self.watches[watch["alertname"]] = newwatch
         
         # read in the feeds

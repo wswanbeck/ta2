@@ -15,24 +15,26 @@ class TestFeedWatcher(unittest.TestCase):
 
     def testStartWatchers(self):
         cfg = Config("../conf/test.conf")
-        feedwatchers = []
-        feedwatchers.append(FeedWatcher(cfg.feeds[0].feedurl))
-        feedwatchers.append(FeedWatcher(cfg.feeds[1].feedurl))
+        feedwatchers = {}
+        for feed in cfg.feeds:
+            feedwatchers[feed.feedname] = FeedWatcher(feed.feedurl, feed.feedname)
+        # feedwatchers[cfg.alerts[0].append(FeedWatcher(cfg.feeds[0].feedurl))
+        # feedwatchers.append(FeedWatcher(cfg.feeds[1].feedurl))
         for fw in feedwatchers:
-            fw.start()
+            feedwatchers[fw].start()
             time.sleep(1)
         time.sleep(2)
         for alertname in cfg.watches:
-            feedwatchers[0].subscribe("http://localhost:88/alert?alertname=" + alertname, "myname")
+            feedwatchers[cfg.watches[alertname].watch_feed_name].subscribe("http://localhost:88/alert?alertname=" + alertname, "myname")
             time.sleep(1)
         time.sleep(12)
         
         for alertname in cfg.watches:
-            feedwatchers[0].unsubscribe("http://localhost:88/alert?alertname=" + alertname)
+            feedwatchers[cfg.watches[alertname].watch_feed_name].unsubscribe("http://localhost:88/alert?alertname=" + alertname)
 
         time.sleep(12)
         for fw in feedwatchers:
-            fw.signalstop()
+            feedwatchers[fw].signalstop()
 
 if __name__ == '__main__':
     unittest.main()
