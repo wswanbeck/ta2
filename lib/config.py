@@ -12,9 +12,9 @@ class Feed:
 
 
 class Config:
-    watches = []
-    feeds = []
     def __init__(self, configPath):
+        self.watches = {}
+        self.feeds = []
 
         # interpret the config file as json
         with open (configPath) as ff:
@@ -32,7 +32,7 @@ class Config:
                 newwatch.scheduledays.append(day)
             newwatch.trip = watch["trip"]
             newwatch.scheduled_time = watch["scheduled-time"]
-            self.watches.append(newwatch)
+            self.watches[watch["alertname"]] = newwatch
         
         # read in the feeds
         for f in cfg_json["feeds"]:

@@ -11,6 +11,7 @@ from lib.config import Config
 
 import threading
 import time
+import urllib2
 
 class FeedWatcher(threading.Thread):
 
@@ -29,12 +30,11 @@ class FeedWatcher(threading.Thread):
         print "Stop watching feed: " + self.feedurl
 
     def run(self):
+        print "Start watching feed: " + self.feedurl
         while not self.threadstop:
-            print "==== " + self.feedurl + " " + str(len(self.subscriberUrls))
             if len(self.subscriberUrls) > 0:
-                print "Watching feed: " + self.feedurl
-            else:
-                print "NOT watching feed: " + self.feedurl
+                print "== posting to subscriber"
+                self.postToSubscribers()
             time.sleep(10)
 
     def subscribe(self, subscriberUrl, urlname):
@@ -42,10 +42,24 @@ class FeedWatcher(threading.Thread):
         print "subscribed " + subscriberUrl + " " + urlname + " to feed " + self.feedurl
 
     def unsubscribe(self, subscriberUrl):
-        del self.subscriberUrls[subscriberUrl]
+        try:
+            # in case caller gave us a non-existant url, assume this could fail
+            del self.subscriberUrls[subscriberUrl]
+        except:
+            pass
         print "UNsubscribed " + subscriberUrl + " to feed " + self.feedurl
 
-
+    def postToSubscribers(self):
+        for sub in self.subscriberUrls:
+            req = urllib2.Request(sub)
+            req.add_header('Content-Type', 'application/json')
+            try:
+                # in case something goes wrong here, we don't want to crash 
+                print "posting to subscriber: " + sub + " from " + self.feedurl
+                response = urllib2.urlopen(req, '{ "feedurl" : "' + self.feedurl + '"}')
+            except:
+                print "*** Error during post to " + sub + " ***"
+                pass
 
 class TestFeedWatcher(unittest.TestCase):
 
@@ -56,11 +70,16 @@ class TestFeedWatcher(unittest.TestCase):
         feedwatchers.append(FeedWatcher(cfg.feeds[1].feedurl))
         for fw in feedwatchers:
             fw.start()
+            time.sleep(1)
         time.sleep(2)
-        feedwatchers[0].subscribe("testurl", "myname")
+        for alertname in cfg.watches:
+            feedwatchers[0].subscribe("http://localhost:88/alert?alertname=" + alertname, "myname")
+            time.sleep(1)
         time.sleep(12)
+        
+        for alertname in cfg.watches:
+            feedwatchers[0].unsubscribe("http://localhost:88/alert?alertname=" + alertname)
 
-        feedwatchers[0].unsubscribe("testurl")
         time.sleep(12)
         for fw in feedwatchers:
             fw.signalstop()
