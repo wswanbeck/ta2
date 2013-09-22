@@ -26,7 +26,14 @@ class Conductor:
 
     @route('/watch/:watchname', method='POST')
     def post_alert(watchname):
-        print request.json["feedurl"]
+        try:
+            pdb.set_trace()
+            for message in request.json["Messages"]:
+                if message["Trip"] == '328':
+                    if message["Vehicle"] != "":
+                        print "=== alert: Vehicle for trip 328 is " + message["Vehicle"] + " ==="
+        except:
+            pass
         return dict(name='watchname = ' + watchname)
 
     # this doesn't actually work - I wonder how to make this work
@@ -75,9 +82,11 @@ class TestConductor(unittest.TestCase):
         req = urllib2.Request(url)
         req.add_header('Content-Type', 'application/json')
         try:
-            # in case something goes wrong here, we don't want to crash 
+            feed = ""
+            with open("testdata/testMBTAfeed.json") as f:
+                feed = f.read()
             print "posting to: " + url
-            response = urllib2.urlopen(req, '{ "feedurl" : "foobar" }')
+            response = urllib2.urlopen(req, feed)
         except Exception, e:
             print "*** Error " + str(e) + " during post to " + url + " ***"
             pass
