@@ -22,9 +22,9 @@ class Conductor:
     def homepage():
         return 'Hello World'
 
-    @route('/alert/:alertname', method='POST')
-    def post_alert(alertname):
-        return dict(name='what to say now...')
+    @route('/alert/:watchname', method='POST')
+    def post_alert(watchname):
+        return dict(name='watchname = ' + watchname)
 
     def runconductor():
         pass

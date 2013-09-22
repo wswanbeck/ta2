@@ -23,7 +23,7 @@ class Config:
             cfg_json = json.load(ff)
         
         # read in the alerts
-        alerts = cfg_json["alerts"]
+        alerts = cfg_json["watches"]
         for alert in alerts:
             # parse the watch seciton of the alert
             watch = alert["watch"]
@@ -39,11 +39,11 @@ class Config:
             newalert.watch_feed_name = watch["watch-feed-name"]
 
             # parse the action section of the alert
-            action = alert["action"]
-            newalert.actiontype = action["type"]
+            action_json = alert["action"]
+            newalert.actiontype = action_json["type"]
             if newalert.actiontype == "email":
-                newalert.actionemailaddress = action["emailaddress"]
-            self.watches[alert["alertname"]] = newalert
+                newalert.actionemailaddress = action_json["emailaddress"]
+            self.watches[alert["watchname"]] = newalert
         
         # read in the feeds
         for f in cfg_json["feeds"]:
