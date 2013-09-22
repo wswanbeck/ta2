@@ -14,35 +14,31 @@ from bottle import route, run, request
 import threading
 import urllib2
 
-class Conductor:
-    
-    cfg = ()
-    def __init__(self, cfg):
-        self.cfg = cfg
+@route('/', method='GET')
+def homepage():
+    return 'Hello World'
 
-    @route('/', method='GET')
-    def homepage():
-        return 'Hello World'
-
-    @route('/watch/:watchname', method='POST')
-    def post_alert(watchname):
-        try:
-            pdb.set_trace()
+@route('/watch/:watchname', method='POST')
+def post_alert(watchname):
+    try:
+        thiswatch = Config("../conf/test.conf").watches[watchname]
+        if thiswatch.watchtype == "vehicle-assigned":
+            watchtrip = thiswatch.trip
             for message in request.json["Messages"]:
-                if message["Trip"] == '328':
+                if message["Trip"] == str(watchtrip):
                     if message["Vehicle"] != "":
-                        print "=== alert: Vehicle for trip 328 is " + message["Vehicle"] + " ==="
-        except:
-            pass
-        return dict(name='watchname = ' + watchname)
-
-    # this doesn't actually work - I wonder how to make this work
-    @route('/quit', method='GET')
-    def get_quit():
-        exit()
-
-    def runconductor():
+                        print "=== alert: Vehicle for trip " + str(watchtrip) + " is " + message["Vehicle"] + " ==="
+    except:
         pass
+    return dict(name='watchname = ' + watchname)
+
+# this doesn't actually work - I wonder how to make this work
+@route('/quit', method='GET')
+def get_quit():
+    exit()
+
+def runconductor():
+    pass
 
 # Run the REST server in a thread
 # just instantiate this class and call .start(portnumber)
@@ -65,7 +61,8 @@ class TestConductor(unittest.TestCase):
 
     def test1(self):
         # setup subscribers (but don't actually start up feed watcher)
-        conductor = Conductor(Config("../conf/test.conf"))
+        # conductor = Conductor(Config("../conf/test.conf"))
+        config = Config("../conf/test.conf")
         # startup the conductor
         # run(reloader=False, host='localhost', port=88)
         rs = RESTServer(91)
@@ -74,8 +71,10 @@ class TestConductor(unittest.TestCase):
 
         self.post("watch-a")
 
+        self.post("watch-b")
+
         # run tests
-        print "tests completed.  Press control-C to quit these tests"
+        print "tests completed.  Press control-C (a bunch of times) to quit this test"
 
     def post(self, watchname):
         url = "http://localhost:91/watch/" + watchname
