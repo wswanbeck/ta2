@@ -26,7 +26,7 @@ class FeedWatcherManager:
 class FeedWatcher(threading.Thread):
 
     def __init__(self, feedurl, feedname):
-        # when threadstop is True, thethread will stop
+        # when threadstop is True, the thread will stop
         self.threadstop = False
 
         # subscriber Urls

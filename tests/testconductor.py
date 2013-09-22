@@ -10,7 +10,9 @@ sys.path.append(os.path.abspath('..'))
 from lib.config import Config
 
 import bottle
-from bottle import route, run
+from bottle import route, run, request
+import threading
+import urllib2
 
 class Conductor:
     
@@ -22,12 +24,34 @@ class Conductor:
     def homepage():
         return 'Hello World'
 
-    @route('/alert/:watchname', method='POST')
+    @route('/watch/:watchname', method='POST')
     def post_alert(watchname):
+        print request.json["feedurl"]
         return dict(name='watchname = ' + watchname)
+
+    # this doesn't actually work - I wonder how to make this work
+    @route('/quit', method='GET')
+    def get_quit():
+        exit()
 
     def runconductor():
         pass
+
+# Run the REST server in a thread
+# just instantiate this class and call .start(portnumber)
+# e.g. 
+#  a = RESTServer()
+#  a.start(88)  # listen on port 88
+#
+# there's currently no way to stop it once it starts though
+class RESTServer(threading.Thread):
+
+    def __init__(self, portnumber):
+        self.portnumber = portnumber
+        threading.Thread.__init__(self)
+
+    def run(self):
+        run(host="localhost", port=self.portnumber)
 
 # You need to run this as sudo!!
 class TestConductor(unittest.TestCase):
@@ -36,7 +60,28 @@ class TestConductor(unittest.TestCase):
         # setup subscribers (but don't actually start up feed watcher)
         conductor = Conductor(Config("../conf/test.conf"))
         # startup the conductor
-        run(host='localhost', port=88)
+        # run(reloader=False, host='localhost', port=88)
+        rs = RESTServer(91)
+        rs.start()
+        print "started..."
+
+        self.post("watch-a")
+
+        # run tests
+        print "tests completed.  Press control-C to quit these tests"
+
+    def post(self, watchname):
+        url = "http://localhost:91/watch/" + watchname
+        req = urllib2.Request(url)
+        req.add_header('Content-Type', 'application/json')
+        try:
+            # in case something goes wrong here, we don't want to crash 
+            print "posting to: " + url
+            response = urllib2.urlopen(req, '{ "feedurl" : "foobar" }')
+        except Exception, e:
+            print "*** Error " + str(e) + " during post to " + url + " ***"
+            pass
+        
 
 if __name__ == '__main__':
     unittest.main()
