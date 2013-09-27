@@ -2,6 +2,8 @@ import threading
 import time
 import urllib2
 
+import pdb
+
 class FeedWatcherManager:
 
     def init(self, cfg):
@@ -20,8 +22,8 @@ class FeedWatcherManager:
     def subscribe(self, feedname, suburl, alertname):
         self.feedwatchers[feedname].subscribe(suburl, alertname)
 
-    def unsubscribe(self, feedname, suburl):
-        self.feedwatchers[feedname].unsubscribe(suburl)
+    def unsubscribe(self, feedname, watchname):
+        self.feedwatchers[feedname].unsubscribe(watchname)
 
 class FeedWatcher(threading.Thread):
 
@@ -43,31 +45,39 @@ class FeedWatcher(threading.Thread):
     def run(self):
         print "Start watching feed: " + self.feedurl
         while not self.threadstop:
+            # read from feedurl
+            response = urllib2.urlopen(str(self.feedurl))
+            self.feeddata = response.read()
+
             if len(self.subscriberUrls) > 0:
-                print "== posting to subscriber"
                 self.postToSubscribers()
             time.sleep(10)
 
-    def subscribe(self, subscriberUrl, urlname):
-        self.subscriberUrls[subscriberUrl] = urlname
-        print "subscribed " + subscriberUrl + " " + urlname + " to feed " + self.feedurl
+    def subscribe(self, subscriberUrl, watchname):
+        self.subscriberUrls[subscriberUrl] = watchname
+        print "subscribed: " + subscriberUrl + ", alertname: " + watchname + " to feed: " + self.feedurl
 
-    def unsubscribe(self, subscriberUrl):
+    def unsubscribe(self, watchname):
         try:
             # in case caller gave us a non-existant url, assume this could fail
-            del self.subscriberUrls[subscriberUrl]
+            for url in self.subscriberUrls:
+                if self.subscriberUrls[url] == watchname:
+                    self.subscriberUrls[url] = None  # no longer subscribed if the watchname is None
+                    break
         except:
             pass
-        print "UNsubscribed " + subscriberUrl + " to feed " + self.feedurl
+        print "Unsubscribed " + watchname + " to feed " + self.feedurl
 
     def postToSubscribers(self):
         for sub in self.subscriberUrls:
-            req = urllib2.Request(sub)
-            req.add_header('Content-Type', 'application/json')
-            try:
-                # in case something goes wrong here, we don't want to crash 
-                print "posting to subscriber: " + sub + " from " + self.feedurl
-                response = urllib2.urlopen(req, '{ "feedurl" : "' + self.feedurl + '"}')
-            except:
-                print "*** Error during post to " + sub + " ***"
-                pass
+            if self.subscriberUrls[sub] != None:
+                req = urllib2.Request(sub)
+                req.add_header('Content-Type', 'application/json')
+                try:
+                    # in case something goes wrong here, we don't want to crash
+                    print "posting to subscriber: " + sub + " from " + self.feedurl
+                    # response = urllib2.urlopen(req, '{ "feedurl" : "' + self.feedurl + '"}')
+                    response = urllib2.urlopen(req, str(self.feeddata))
+                except:
+                    print "*** Error during post to " + sub + " ***"
+                    pass

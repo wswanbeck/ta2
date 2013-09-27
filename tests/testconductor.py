@@ -3,7 +3,6 @@
 
 import unittest
 import os
-import pdb
 import sys
 # pretend we're running from the directory above ./tests
 sys.path.append(os.path.abspath('..'))
@@ -21,16 +20,25 @@ def homepage():
 @route('/watch/:watchname', method='POST')
 def post_alert(watchname):
     try:
-        thiswatch = Config("../conf/test.conf").watches[watchname]
+        thiswatch = conductor_config("../conf/test.conf").watches[watchname]
         if thiswatch.watchtype == "vehicle-assigned":
             watchtrip = thiswatch.trip
             for message in request.json["Messages"]:
                 if message["Trip"] == str(watchtrip):
                     if message["Vehicle"] != "":
                         print "=== alert: Vehicle for trip " + str(watchtrip) + " is " + message["Vehicle"] + " ==="
+                        unsubscribe(messAage["watchname"])
+                        break;
+                    else: 
+                        print "((( Vehicle for trip " + str(watchtrip) + " is " + message["Vehicle"] + " )))"
     except:
         pass
     return dict(name='watchname = ' + watchname)
+
+def unsubscribe(watchname):
+   print "Unsubscribing to " + watchname
+
+conductor_config = None
 
 # this doesn't actually work - I wonder how to make this work
 @route('/quit', method='GET')
@@ -62,7 +70,8 @@ class TestConductor(unittest.TestCase):
     def test1(self):
         # setup subscribers (but don't actually start up feed watcher)
         # conductor = Conductor(Config("../conf/test.conf"))
-        config = Config("../conf/test.conf")
+        global conductor_config
+        conductor_config = Config("../conf/test.conf")
         # startup the conductor
         # run(reloader=False, host='localhost', port=88)
         rs = RESTServer(91)
