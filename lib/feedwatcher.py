@@ -53,9 +53,9 @@ class FeedWatcher(threading.Thread):
                 self.postToSubscribers()
             time.sleep(10)
 
-    def subscribe(self, subscriberUrl, watchname):
-        self.subscriberUrls[subscriberUrl] = watchname
-        print "subscribed: " + subscriberUrl + ", alertname: " + watchname + " to feed: " + self.feedurl
+    def subscribe(self, notifySubscriberUrl, watchname):
+        self.subscriberUrls[notifySubscriberUrl] = watchname
+        print "subscribed: " + notifySubscriberUrl + ", alertname: " + watchname + " to feed: " + self.feedurl
 
     def unsubscribe(self, watchname):
         try:

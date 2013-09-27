@@ -26,3 +26,5 @@ docs/book/text/
 docs/epydoc/
 samples/
 *.swp
+.idea/
+trainalert.komodoproject

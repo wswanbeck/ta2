@@ -10,6 +10,7 @@ import urllib2
 import threading
 import signal
 import sqlite3
+import smtplib
 
 import pdb
 
@@ -48,7 +49,6 @@ def setup(configpath):
     # subscribe to watches - this will cause FeedWatchers to call back to REST server with feed updates
     for alertname in Config(configpath).watches:
         theFeedWatcherManager.subscribe(theconfig.watches[alertname].watch_feed_name, theRESTServerUrl % alertname, alertname)
-        break # ___ fix this 
 
 class RESTThread(threading.Thread):
     def run(self):
@@ -83,6 +83,21 @@ def post_alert(watchname):
                 if message["Trip"] == str(watchtrip):
                     if message["Vehicle"] != "":
                         print "=== alert: Vehicle for trip " + str(watchtrip) + " is " + message["Vehicle"] + " ==="
+
+                        # replace some of this stuff with configured values ___
+                        session = smtplib.SMTP('smtp.gmail.com', 587)
+                        session.ehlo()
+                        session.starttls()
+                        session.ehlo()
+                        session.login('wendy.swanbeck@gmail.com', 'xtlvdsksxrihalnh')
+                        headers = ["from: " + 'wendy.swanbeck@gmail.com',
+                           "subject: " + "Lowell train is " + message["Vehicle"],
+                           "to: " + thiswatch.actionemailaddress,
+                           "mime-version: 1.0",
+                           "content-type: text/html"]
+                        headers = "\r\n".join(headers)
+                        session.sendmail('wendy.swanbeck@gmail.com', thiswatch.actionemailaddress, headers + "\r\n\r\nLowell train is " + message["Vehicle"])
+
                         theFeedWatcherManager.unsubscribe(thiswatch.watch_feed_name, watchname)
                         break;
     except:
