@@ -91,7 +91,7 @@ def post_alert(watchname):
                         session.ehlo()
                         session.login('wendy.swanbeck@gmail.com', 'xtlvdsksxrihalnh')
                         headers = ["from: " + 'wendy.swanbeck@gmail.com',
-                           "subject: " + "Lowell train is " + message["Vehicle"],
+                           "subject: " + "Lowell train is " + message["Vehicle"] + " [forwardtophone]",
                            "to: " + thiswatch.actionemailaddress,
                            "mime-version: 1.0",
                            "content-type: text/html"]
