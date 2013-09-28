@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import sys
-from lib.config import Config
-from lib.feedwatcher import FeedWatcher,FeedWatcherManager
-import bottle
+
 from bottle import route, run, request
+
+from lib.config import Config
+from lib.feedwatcher import FeedWatcherManager
+
 # from bottle_sqlite import SQLitePlugin
-import urllib2
 import threading
 import signal
-import sqlite3
 import smtplib
-
-import pdb
 
 sqlite_db = '/tmp/ta-alerts.sqlite'
 # install(SQLitePlugin(dbfile=sqlite_db))

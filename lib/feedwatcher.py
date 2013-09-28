@@ -2,8 +2,6 @@ import threading
 import time
 import urllib2
 
-import pdb
-
 class FeedWatcherManager:
 
     def init(self, cfg):
