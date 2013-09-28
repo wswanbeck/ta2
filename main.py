@@ -82,7 +82,8 @@ def post_alert(watchname):
             for message in request.json["Messages"]:
                 if message["Trip"] == str(watchtrip):
                     if message["Vehicle"] != "":
-                        print "=== alert: Vehicle for trip " + str(watchtrip) + " is " + message["Vehicle"] + " ==="
+                        alertmessage = "Vehicle for trip " + str(watchtrip) + " is " + message["Vehicle"]
+                        print "=== alert: " + alertmessage + " ==="
 
                         # replace some of this stuff with configured values ___
                         session = smtplib.SMTP('smtp.gmail.com', 587)
@@ -96,10 +97,36 @@ def post_alert(watchname):
                            "mime-version: 1.0",
                            "content-type: text/html"]
                         headers = "\r\n".join(headers)
-                        session.sendmail('wendy.swanbeck@gmail.com', thiswatch.actionemailaddress, headers + "\r\n\r\nLowell train is " + message["Vehicle"])
+                        session.sendmail('wendy.swanbeck@gmail.com', thiswatch.actionemailaddress, headers + "\r\n\r\n" + alertmessage)
 
                         theFeedWatcherManager.unsubscribe(thiswatch.watch_feed_name, watchname)
-                        break;
+                        break
+        elif thiswatch.watchtype == "flag-arrival":
+            watchtrip = thiswatch.trip
+            for message in request.json["Messages"]:
+                if message["Trip"] == str(watchtrip):
+                    if message["Stop"] != thiswatch.watch_feed_stop:
+                        alertmessage = "Trip " + str(watchtrip) + " is now arriving at " + message["Stop"]
+                        print "=== alert: " + alertmessage + " ==="
+
+                        # replace some of this stuff with configured values ___
+                        session = smtplib.SMTP('smtp.gmail.com', 587)
+                        session.ehlo()
+                        session.starttls()
+                        session.ehlo()
+                        session.login('wendy.swanbeck@gmail.com', 'xtlvdsksxrihalnh')
+                        headers = ["from: " + 'wendy.swanbeck@gmail.com',
+                           "subject: " + alertmessage + " [forwardtophone]",
+                           "to: " + thiswatch.actionemailaddress,
+                           "mime-version: 1.0",
+                           "content-type: text/html"]
+                        headers = "\r\n".join(headers)
+                        session.sendmail('wendy.swanbeck@gmail.com', thiswatch.actionemailaddress, headers + "\r\n\r\n" + alertmessage)
+
+                        theFeedWatcherManager.unsubscribe(thiswatch.watch_feed_name, watchname)
+                        break
+
+
     except:
         print '*** exception thrown in REST server post_alert ***'
 

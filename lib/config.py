@@ -38,6 +38,9 @@ class Config:
             newalert.scheduled_time = watch["scheduled-time"]
             newalert.watch_feed_name = watch["watch-feed-name"]
 
+            if newalert.watchtype == "flag-arrival":
+                newalert.watch_feed_stop = watch["watch-feed-stop"]
+
             # parse the action section of the alert
             action_json = alert["action"]
             newalert.actiontype = action_json["type"]
