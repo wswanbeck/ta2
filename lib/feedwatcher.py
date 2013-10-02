@@ -44,11 +44,16 @@ class FeedWatcher(threading.Thread):
         print "Start watching feed: " + self.feedurl
         while not self.threadstop:
             # read from feedurl
-            response = urllib2.urlopen(str(self.feedurl))
-            self.feeddata = response.read()
+            try:
+                print "reading from " + self.feedurl
+                response = urllib2.urlopen(str(self.feedurl))
+                self.feeddata = response.read()
 
-            if len(self.subscriberUrls) > 0:
-                self.postToSubscribers()
+                if len(self.subscriberUrls) > 0:
+                    self.postToSubscribers()
+            except:
+                print "*** error attempting to read " + self.feedurl
+
             time.sleep(10)
 
     def subscribe(self, notifySubscriberUrl, watchname):

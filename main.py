@@ -28,21 +28,10 @@ theFeedWatcherManager.start()
 
 
 def setup(configpath):
-    # open config
-    #___theconfig = Config(configpath)
-    # ___ theconfig.exportSqlite(sqlite_db) # db.execute('INSERT INTO ...')
 
     # startup the REST server
     rest = RESTThread()
     rest.start()
-
-    # create feedwatchermanager
-    # get ready for messages from FeedWatcher’s
-    # ____ theFeedWatcherManager = FeedWatcherManager()
-    # initialize the FeedWatcherManager
-    # ____ theFeedWatcherManager.init(theconfig)
-    # start watching
-    # ____ theFeedWatcherManager.start()
 
     # subscribe to watches - this will cause FeedWatchers to call back to REST server with feed updates
     for alertname in Config(configpath).watches:
@@ -103,26 +92,27 @@ def post_alert(watchname):
             watchtrip = thiswatch.trip
             for message in request.json["Messages"]:
                 if message["Trip"] == str(watchtrip):
-                    if message["Stop"] != thiswatch.watch_feed_stop:
-                        alertmessage = "Trip " + str(watchtrip) + " is now arriving at " + message["Stop"]
-                        print "=== alert: " + alertmessage + " ==="
+                    if message["Stop"] == thiswatch.watch_feed_stop:
+                        if message["Flag"] == "arr":
+                            alertmessage = "Trip " + str(watchtrip) + " is now arriving at " + message["Stop"]
+                            print "=== alert: " + alertmessage + " ==="
 
-                        # replace some of this stuff with configured values ___
-                        session = smtplib.SMTP('smtp.gmail.com', 587)
-                        session.ehlo()
-                        session.starttls()
-                        session.ehlo()
-                        session.login('wendy.swanbeck@gmail.com', 'xtlvdsksxrihalnh')
-                        headers = ["from: " + 'wendy.swanbeck@gmail.com',
-                           "subject: " + alertmessage + " [forwardtophone]",
-                           "to: " + thiswatch.actionemailaddress,
-                           "mime-version: 1.0",
-                           "content-type: text/html"]
-                        headers = "\r\n".join(headers)
-                        session.sendmail('wendy.swanbeck@gmail.com', thiswatch.actionemailaddress, headers + "\r\n\r\n" + alertmessage)
+                            # replace some of this stuff with configured values ___
+                            session = smtplib.SMTP('smtp.gmail.com', 587)
+                            session.ehlo()
+                            session.starttls()
+                            session.ehlo()
+                            session.login('wendy.swanbeck@gmail.com', 'xtlvdsksxrihalnh')
+                            headers = ["from: " + 'wendy.swanbeck@gmail.com',
+                               "subject: " + alertmessage + " [forwardtophone]",
+                               "to: " + thiswatch.actionemailaddress,
+                               "mime-version: 1.0",
+                               "content-type: text/html"]
+                            headers = "\r\n".join(headers)
+                            session.sendmail('wendy.swanbeck@gmail.com', thiswatch.actionemailaddress, headers + "\r\n\r\n" + alertmessage)
 
-                        theFeedWatcherManager.unsubscribe(thiswatch.watch_feed_name, watchname)
-                        break
+                            theFeedWatcherManager.unsubscribe(thiswatch.watch_feed_name, watchname)
+                            break
 
 
     except:
